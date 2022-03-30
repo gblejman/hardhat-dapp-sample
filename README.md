@@ -1,15 +1,18 @@
-# Basic Sample Hardhat Project
+# Basic Greeting Contract with Hardhat
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts.
+# Localhost
 
-Try running some of the following tasks:
+- npm run node:localhost
+- npm run deploy:localhost
+- npm start
 
-```shell
-npx hardhat accounts
-npx hardhat compile
-npx hardhat clean
-npx hardhat test
-npx hardhat node
-node scripts/sample-script.js
-npx hardhat help
-```
+# Ropsten
+
+- set ROPSTEN_PRIVATE_KEY as env var `export ROPSTEN_PRIVATE_KEY=0x...`
+- npm run deploy:ropsten
+- npm start
+
+# App
+
+- Set the address contract to the return value of running `npm run deploy:xxx`
+- Set the new value and sign the transaction using Metamask

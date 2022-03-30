@@ -5,9 +5,8 @@ import "./App.css";
 
 const isMetamask = typeof window.ethereum !== "undefined";
 
-const CONTRACT_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
-
 function App() {
+  const [contractAddress, setContactAddress] = useState("");
   const [value, setValue] = useState("");
   const [transactions, setTransactions] = useState([]);
   const [accounts, setAccounts] = useState([]);
@@ -17,7 +16,7 @@ function App() {
     if (isMetamask) {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const contract = new ethers.Contract(
-        CONTRACT_ADDRESS,
+        contractAddress,
         Greeter.abi,
         provider
       );
@@ -39,7 +38,7 @@ function App() {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const contract = new ethers.Contract(
-        CONTRACT_ADDRESS,
+        contractAddress,
         Greeter.abi,
         signer
       );
@@ -63,20 +62,30 @@ function App() {
     });
 
     setAccounts(accounts);
+
+    await getGreeting();
   };
 
-  useEffect(() => {
-    const init = async () => {
-      await getGreeting();
-    };
+  // useEffect(() => {
+  //   const init = async () => {
+  //     await getGreeting();
+  //   };
 
-    init();
-  }, []);
+  //   init();
+  // }, []);
 
   return (
     <div className="App">
       <header className="App-header">
-        <span>Contract Address: {CONTRACT_ADDRESS}</span>
+        <p>
+          <span>Contract Adress</span>
+          <input
+            value={contractAddress}
+            placeholder="Contact Adress"
+            onChange={(e) => setContactAddress(e.target.value)}
+            style={{ width: 350 }}
+          />
+        </p>
         <button onClick={requestAccount}>Connect</button>
       </header>
 

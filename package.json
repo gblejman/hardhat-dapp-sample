@@ -17,8 +17,9 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "compile": "hardhat compile",
-    "node": "hardhat node",
-    "deploy": "hardhat run scripts/deploy.js --network localhost"
+    "node:localhost": "hardhat node",
+    "deploy:localhost": "hardhat run scripts/deploy.js --network localhost",
+    "deploy:ropsten": "hardhat run scripts/deploy.js --network ropsten"
   },
   "eslintConfig": {
     "extends": [
