@@ -1,78 +1,75 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { ethers } from "ethers";
-import Greeter from "./artifacts/contracts/Greeter.sol/Greeter.json";
+import Token from "./artifacts/contracts/Token.sol/Token.json";
 import "./App.css";
 
 const isMetamask = typeof window.ethereum !== "undefined";
 
 function App() {
-  const [contractAddress, setContactAddress] = useState("");
-  const [value, setValue] = useState("");
-  const [transactions, setTransactions] = useState([]);
   const [accounts, setAccounts] = useState([]);
+  const [contractAddress, setContactAddress] = useState("");
+  const [balance, setBalance] = useState(0);
+  const [toAddress, setToAddress] = useState("");
+  const [amount, setAmount] = useState(0);
+  const [transactions, setTransactions] = useState([]);
 
-  const getGreeting = async () => {
-    // test for metamask injected wallet
-    if (isMetamask) {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const contract = new ethers.Contract(
-        contractAddress,
-        Greeter.abi,
-        provider
-      );
+  // helper
+  const isConnected = accounts.length > 0;
 
-      try {
-        const data = await contract.greet();
-        console.log("data", data);
-        setValue(data);
-      } catch (e) {
-        console.log("error", e);
-      }
+  const getBalance = async () => {
+    console.log("getBalance", { isConnected, accounts, balance });
+    // if (!isConnected) return;
+
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const contract = new ethers.Contract(contractAddress, Token.abi, provider);
+    const data = await contract.balanceOf(accounts[0]);
+    // data returns: ​BigNumber {_hex: '0x0f4240', _isBigNumber: true}
+    // how to properly convert without eventually losing presicion??
+
+    setBalance(data.toString());
+  };
+
+  const transfer = async () => {
+    if (!toAddress || !amount) return;
+    if (!isConnected) return;
+
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+    const contract = new ethers.Contract(contractAddress, Token.abi, signer);
+
+    try {
+      const transaction = await contract.transfer(toAddress, amount);
+      const result = await transaction.wait();
+
+      alert(`Sent ${amount} tokens to address ${toAddress}`);
+
+      console.log("transaction/result", { transaction, result });
+
+      setTransactions([...transactions, { ...transaction, result }]);
+    } catch (e) {
+      alert(e.message);
     }
   };
 
-  const setGreeting = async () => {
-    if (!value) return;
+  const connect = async () => {
+    if (!isMetamask) return;
 
-    if (isMetamask) {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const contract = new ethers.Contract(
-        contractAddress,
-        Greeter.abi,
-        signer
-      );
-
-      try {
-        const transaction = await contract.setGreeting(value);
-        const result = await transaction.wait();
-
-        console.log("transaction/result", { transaction, result });
-
-        setTransactions([...transactions, { ...transaction, result }]);
-      } catch (e) {
-        alert(e.message);
-      }
-    }
-  };
-
-  const requestAccount = async () => {
-    const accounts = await window.ethereum.request({
+    const data = await window.ethereum.request({
       method: "eth_requestAccounts",
     });
 
-    setAccounts(accounts);
-
-    await getGreeting();
+    setAccounts(data);
   };
 
-  // useEffect(() => {
-  //   const init = async () => {
-  //     await getGreeting();
-  //   };
+  useEffect(() => {
+    const init = () => {
+      if (!isConnected) return;
 
-  //   init();
-  // }, []);
+      getBalance();
+    };
+
+    init();
+  }, [isConnected]);
 
   return (
     <div className="App">
@@ -86,16 +83,27 @@ function App() {
             style={{ width: 350 }}
           />
         </p>
-        <button onClick={requestAccount}>Connect</button>
+        <button onClick={connect}>Connect</button>
       </header>
 
       <div>
+        <span>Balance: {balance}</span>
+
+        <button onClick={getBalance}>getBalance</button>
+
         <input
-          value={value}
-          placeholder="Set Greeting"
-          onChange={(e) => setValue(e.target.value)}
+          value={toAddress}
+          placeholder="Send To"
+          onChange={(e) => setToAddress(e.target.value)}
         />
-        <button onClick={setGreeting}>Set Greeting</button>
+
+        <input
+          value={amount}
+          placeholder="Amount"
+          onChange={(e) => setAmount(parseInt(e.target.value))}
+        />
+
+        <button onClick={transfer}>Send</button>
       </div>
 
       <h3>Accounts</h3>
